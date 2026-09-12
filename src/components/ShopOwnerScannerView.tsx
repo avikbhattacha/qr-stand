@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import QRCode from 'qrcode';
 import {
-  Printer,
   Download,
   Copy,
   Check,
@@ -87,6 +86,7 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
   const [qrSvg, setQrSvg] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [standTheme, setStandTheme] = useState<'gold' | 'navy' | 'minimal'>('gold');
+  const standRef = useRef<HTMLDivElement>(null);
 
   const defaultCategoryTemplates = getDefaultTemplates(businessCategory);
   const [activeCategoryTemplates, setActiveCategoryTemplates] = useState<string[]>(() => {
@@ -247,44 +247,29 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
     return () => { cancelled = true; };
   }, [customerScanUrl, isTweakedFromDefaults, businessCategory, businessName, directReviewUrl, whatsappNumber]);
 
-  const handleDownloadPNG = () => {
-    if (!qrDataUrl) return;
-    const a = document.createElement('a');
-    a.href = qrDataUrl;
-    const safeName = (businessName || 'online-review').toLowerCase().replace(/[^a-z0-9]/g, '-');
-    a.download = `${safeName}-review-qr.png`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  };
-
-  const handleDownloadSVG = () => {
-    if (!qrSvg) return;
-    const blob = new Blob([qrSvg], { type: 'image/svg+xml' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    const safeName = (businessName || 'online-review').toLowerCase().replace(/[^a-z0-9]/g, '-');
-    a.download = `${safeName}-review-qr.svg`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const handleCopyQRImage = async () => {
-    if (!qrDataUrl) return;
+  // Download full standalone stand graphic as PNG using HTML5 Canvas rendering
+  const handleDownloadStandPNG = async () => {
+    if (!standRef.current) return;
     try {
-      const res = await fetch(qrDataUrl);
-      const blob = await res.blob();
-      if (navigator?.clipboard?.write && typeof ClipboardItem !== 'undefined') {
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        setCopiedQRImage(true);
-        setTimeout(() => setCopiedQRImage(false), 2500);
-      } else {
-        navigator.clipboard.writeText(customerScanUrl);
-      }
-    } catch {
-      navigator.clipboard.writeText(customerScanUrl);
+      // Dynamically import html2canvas or use standard canvas drawing
+      const node = standRef.current;
+      const html2canvas = (await import('html2canvas')).default;
+      const canvas = await html2canvas(node, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
+      const image = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = image;
+      const safeName = (businessName || 'review-stand').toLowerCase().replace(/[^a-z0-9]/g, '-');
+      a.download = `${safeName}-counter-stand.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    } catch (err) {
+      console.error('Failed to render standalone stand image:', err);
+      // Fallback: download raw QR if canvas renderer fails
+      const a = document.createElement('a');
+      a.href = qrDataUrl;
+      a.download = 'review-qr.png';
+      a.click();
     }
   };
 
@@ -310,7 +295,7 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
           </p>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
-          <button onClick={handleDownloadPNG} className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition active:scale-98">
+          <button onClick={handleDownloadStandPNG} className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition active:scale-98">
             <Download className="w-4 h-4 text-amber-400" />
             <span>Download Stand (PNG)</span>
           </button>
@@ -535,16 +520,16 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
             </div>
             <div className="flex items-center gap-2">
               <button onClick={() => setIsQRModalOpen(true)} className="text-xs font-semibold px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 rounded-lg flex items-center gap-1 transition"><Maximize2 className="w-3 h-3 text-amber-700" /><span>Enlarge QR</span></button>
-              <button onClick={handleCopyQRImage} className="text-xs font-semibold px-2 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 rounded-lg flex items-center gap-1 transition">
-                {copiedQRImage ? <><Check className="w-3 h-3 text-emerald-600" /><span>Copied!</span></> : <><Copy className="w-3 h-3 text-slate-600" /><span>Copy Image</span></>}
-              </button>
-              <button onClick={handleDownloadPNG} className="text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1"><Download className="w-3 h-3" /><span>PNG</span></button>
-              <button onClick={handleDownloadSVG} className="text-xs font-semibold text-slate-600 hover:text-slate-900 flex items-center gap-1"><Download className="w-3 h-3" /><span>SVG</span></button>
+              <button onClick={handleDownloadStandPNG} className="text-xs font-semibold px-3 py-1 bg-slate-900 text-white rounded-lg flex items-center gap-1 transition shadow-sm"><Download className="w-3.5 h-3.5 text-amber-400" /><span>Download Stand (PNG)</span></button>
             </div>
           </div>
 
           <div className="bg-slate-200/80 p-6 sm:p-10 rounded-2xl flex items-center justify-center overflow-x-auto min-h-[520px]">
-            <div className={`w-[340px] sm:w-[380px] bg-white rounded-3xl p-8 text-center shadow-2xl border transition-all ${standTheme === 'gold' ? 'border-amber-400 ring-2 ring-amber-400/20' : standTheme === 'navy' ? 'border-4 border-slate-900' : 'border-2 border-black'}`}>
+            {/* The Physical Card Stand Ref for HTML5 PNG Download */}
+            <div
+              ref={standRef}
+              className={`w-[340px] sm:w-[380px] bg-white rounded-3xl p-8 text-center shadow-2xl border transition-all ${standTheme === 'gold' ? 'border-amber-400 ring-2 ring-amber-400/20' : standTheme === 'navy' ? 'border-4 border-slate-900' : 'border-2 border-black'}`}
+            >
               <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold tracking-wider uppercase mb-3 bg-amber-50 text-amber-900 border border-amber-200"><span>Leave Us a Review</span></div>
               <div className="flex justify-center items-center gap-1 mb-3">{[1, 2, 3, 4, 5].map((s) => (<Star key={s} className="w-5 h-5 text-amber-400 fill-amber-400 drop-shadow-2xs" />))}</div>
               <h3 className="text-lg font-black text-slate-900 tracking-tight leading-snug mb-1">{businessName || 'YOUR BUSINESS'}</h3>
@@ -559,7 +544,6 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
 
               <div className="mt-5 pt-4 border-t border-slate-100 space-y-2">
                 <button onClick={onPreviewCustomerScan} className="w-full py-2 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition"><Eye className="w-3.5 h-3.5 text-slate-600" /><span>Simulate Customer Scan Flow</span></button>
-                <a href={directReviewUrl} target="_blank" rel="noopener noreferrer" className="w-full py-1.5 px-2 text-[11px] font-semibold text-amber-700 hover:text-amber-800 hover:bg-amber-50 rounded-lg flex items-center justify-center gap-1 transition"><span>Go to Review Comment Section directly</span><ExternalLink className="w-3 h-3" /></a>
               </div>
             </div>
           </div>
@@ -597,7 +581,7 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
               {qrDataUrl && <img src={qrDataUrl} alt="QR" className="w-64 h-64 mx-auto rounded-xl" />}
             </div>
             <div className="grid grid-cols-2 gap-2">
-              <button onClick={handleDownloadPNG} className="py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold rounded-xl flex items-center justify-center"><Download className="w-4 h-4 mr-1" /> Download PNG</button>
+              <button onClick={handleDownloadStandPNG} className="py-2.5 px-3 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold rounded-xl flex items-center justify-center"><Download className="w-4 h-4 mr-1" /> Download Stand</button>
               <button onClick={handleCopyLink} className="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center justify-center"><Copy className="w-4 h-4 mr-1" /> Copy Link</button>
             </div>
           </div>
