@@ -184,7 +184,6 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
   const directReviewUrl = convertToDirectReviewUrl(publicReviewUrl) || normalizeReviewUrl(publicReviewUrl);
   const isDirectModal = isDirectReviewCommentUrl(publicReviewUrl);
   const [isQRModalOpen, setIsQRModalOpen] = useState<boolean>(false);
-  const [copiedQRImage, setCopiedQRImage] = useState<boolean>(false);
 
   const isTweakedFromDefaults = activeCategoryTemplates.some(
     (t, i) => i >= defaultCategoryTemplates.length || t !== defaultCategoryTemplates[i]
@@ -246,6 +245,7 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
     return () => { cancelled = true; };
   }, [customerScanUrl, isTweakedFromDefaults, businessCategory, businessName, directReviewUrl, whatsappNumber]);
 
+  // Capture the full styled counter stand card container via html2canvas
   const handleDownloadStandPNG = async () => {
     if (!standRef.current) return;
     try {
@@ -576,3 +576,4 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
     </div>
   );
 };
+
