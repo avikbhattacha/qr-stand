@@ -52,7 +52,6 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
 }) => {
   const [rating, setRating] = useState<number | null>(null);
   const [hoverRating, setHoverRating] = useState<number | null>(null);
-  const [copiedTemplateIdx, setCopiedTemplateIdx] = useState<number | null>(null);
   const [privateFeedback, setPrivateFeedback] = useState<string>('');
   const [feedbackDispatched, setFeedbackDispatched] = useState<boolean>(false);
   const [pageOpenedNotice, setPageOpenedNotice] = useState<boolean>(false);
@@ -117,7 +116,6 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
       const commentToUse = activeComment || reviewTemplates[0] || '';
       if (commentToUse && navigator?.clipboard?.writeText) {
         navigator.clipboard.writeText(commentToUse).catch(() => {});
-        setCopiedTemplateIdx(0);
         setCopiedActiveNotice(true);
         setTimeout(() => setCopiedActiveNotice(false), 3000);
       }
@@ -125,7 +123,6 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
         window.open(targetReviewUrl, '_blank', 'noopener,noreferrer');
         setPageOpenedNotice(true);
       } catch (err) {
-        console.warn('Popup blocked by browser:', err);
         setPageOpenedNotice(false);
       }
     } else {
@@ -133,9 +130,8 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
     }
   };
 
-  const handleSelectTemplateAndGo = (text: string, idx: number) => {
+  const handleSelectTemplateAndGo = (text: string) => {
     setActiveComment(text);
-    setCopiedTemplateIdx(idx);
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(text).catch(() => {});
       setCopiedActiveNotice(true);
@@ -145,10 +141,9 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
     setPageOpenedNotice(true);
   };
 
-  const handleSelectTemplateOnly = (e: React.MouseEvent, text: string, idx: number) => {
+  const handleSelectTemplateOnly = (e: React.MouseEvent, text: string) => {
     e.stopPropagation();
     setActiveComment(text);
-    setCopiedTemplateIdx(idx);
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(text).catch(() => {});
       setCopiedActiveNotice(true);
@@ -232,7 +227,8 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
             <span className="text-[11px] font-bold uppercase tracking-wider text-amber-900">Customer Feedback &amp; Reviews</span>
           </div>
           <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-tight mb-2">{businessName}</h1>
-          <p className="text-xs text-slate-500 mb-4">How was your experience today? Tap a star to rate:</p>
+          <p className="text-xs text-slate-500 mb-1">Loved our service? Point your phone camera to review us:</p>
+          <p className="text-[11px] text-amber-700 font-semibold mb-4">We already have populated comment templates below if you want to choose one!</p>
           
           <div className="flex items-center justify-center gap-2 mb-2">
             {[1, 2, 3, 4, 5].map((starVal) => {
@@ -350,7 +346,7 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
                     return (
                       <div
                         key={idx}
-                        onClick={() => handleSelectTemplateAndGo(template, idx)}
+                        onClick={() => handleSelectTemplateAndGo(template)}
                         className={`w-full p-3 rounded-2xl border text-left text-xs transition cursor-pointer flex flex-col gap-2 ${isSelected ? 'bg-amber-50/90 border-amber-300 text-amber-950 shadow-sm' : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700 hover:border-amber-300'}`}
                       >
                         <div className="flex items-start justify-between gap-2">
@@ -365,7 +361,7 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
                           <span className="text-amber-700 flex items-center gap-1"><span>Select &amp; Land in Comment Box</span><ArrowRight className="w-3 h-3" /></span>
                           <button
                             type="button"
-                            onClick={(e) => handleSelectTemplateOnly(e, template, idx)}
+                            onClick={(e) => handleSelectTemplateOnly(e, template)}
                             className="text-slate-500 hover:text-slate-800 px-2 py-0.5 rounded bg-white border border-slate-200 flex items-center gap-1"
                           >
                             {isSelected ? <><Check className="w-3 h-3 text-emerald-600" /><span className="text-emerald-700">Selected</span></> : <><Edit3 className="w-3 h-3 text-slate-400" /><span>Use in box</span></>}
@@ -437,6 +433,7 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
       <footer className="no-print mt-6 text-center text-[11px] text-slate-400 flex items-center justify-center gap-1.5">
         <ShieldCheck className="w-3.5 h-3.5 text-slate-400" />
         <span>Stateless Feedback Portal &bull; Direct &amp; Private</span>
+        <span className="ml-2 font-bold text-emerald-600">Done</span>
       </footer>
     </div>
   );
