@@ -19,7 +19,6 @@ import {
   FileText,
   ExternalLink,
   MessageSquarePlus,
-  HelpCircle,
   Sliders,
   RotateCcw,
   Edit3,
@@ -88,8 +87,6 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
   const [qrSvg, setQrSvg] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [standTheme, setStandTheme] = useState<'gold' | 'navy' | 'minimal'>('gold');
-  const [placeIdInput, setPlaceIdInput] = useState<string>('');
-  const [showDirectHelp, setShowDirectHelp] = useState<boolean>(false);
 
   const defaultCategoryTemplates = getDefaultTemplates(businessCategory);
   const [activeCategoryTemplates, setActiveCategoryTemplates] = useState<string[]>(() => {
@@ -110,9 +107,7 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
     const resolved = stored && stored.length > 0 ? stored : defaults;
     setActiveCategoryTemplates(resolved);
     setEditingTemplateIdx(null);
-    if (setTweakedTemplates) {
-      setTweakedTemplates(resolved);
-    }
+    if (setTweakedTemplates) setTweakedTemplates(resolved);
   }, [businessCategory]);
 
   const tweakedCount = activeCategoryTemplates.filter(
@@ -252,8 +247,6 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
     return () => { cancelled = true; };
   }, [customerScanUrl, isTweakedFromDefaults, businessCategory, businessName, directReviewUrl, whatsappNumber]);
 
-  const handlePrint = () => window.print();
-
   const handleDownloadPNG = () => {
     if (!qrDataUrl) return;
     const a = document.createElement('a');
@@ -317,9 +310,9 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
           </p>
         </div>
         <div className="flex items-center gap-2.5 shrink-0">
-          <button onClick={handlePrint} className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition active:scale-98">
-            <Printer className="w-4 h-4 text-amber-400" />
-            <span>Print Counter Stand</span>
+          <button onClick={handleDownloadPNG} className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition active:scale-98">
+            <Download className="w-4 h-4 text-amber-400" />
+            <span>Download Stand (PNG)</span>
           </button>
           <button onClick={onPreviewCustomerScan} className="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-sm transition active:scale-98">
             <Eye className="w-4 h-4" />
@@ -458,7 +451,10 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5"><MessageSquarePlus className="w-3.5 h-3.5 text-amber-500" /><span>Business Review Page Link</span></label>
-              <button onClick={() => setShowDirectHelp(!showDirectHelp)} className="text-[10px] text-amber-600 font-bold hover:underline flex items-center gap-0.5"><HelpCircle className="w-3 h-3" /><span>Direct Comment Box Guide</span></button>
+              <a href="https://support.google.com/business/answer/16816815?hl=en-IN&ref_topic=4596755&sjid=4455838597510979161-NC" target="_blank" rel="noopener noreferrer" className="text-[10px] text-amber-600 font-bold hover:underline flex items-center gap-0.5">
+                <span>Direct Comment Box Guide</span>
+                <ExternalLink className="w-2.5 h-2.5" />
+              </a>
             </div>
             <div className="flex gap-2">
               <div className="relative flex-1">
@@ -473,16 +469,6 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
               ) : (
                 <div className="text-[10px] text-slate-500 flex items-center gap-1"><span>Customers rating 4-5 will be taken to this link.</span></div>
               )}
-            </div>
-            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-700 text-[11px]">Want reviews to land directly in the comment section?</span>
-                <a href="https://developers.google.com/maps/documentation/javascript/examples/places-placeid-finder" target="_blank" rel="noopener noreferrer" className="text-[10px] text-amber-700 font-bold underline hover:text-amber-900 flex items-center gap-0.5"><span>Find Place ID</span><ExternalLink className="w-2.5 h-2.5" /></a>
-              </div>
-              <div className="flex gap-2">
-                <input type="text" value={placeIdInput} onChange={(e) => setPlaceIdInput(e.target.value)} placeholder="Paste Google Place ID (e.g. ChIJ...) or Maps URL" className="flex-1 px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 font-mono text-[11px]" />
-                <button onClick={() => { if (placeIdInput.trim()) { setPublicReviewUrl(convertToDirectReviewUrl(placeIdInput.trim())); setPlaceIdInput(''); } }} className="px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg transition active:scale-95 shrink-0">Set Direct Link</button>
-              </div>
             </div>
           </div>
 
