@@ -11,12 +11,9 @@ import {
   AlertTriangle,
   ShieldCheck,
   Award,
-  Tag,
-  ArrowRight,
-  MessageSquarePlus,
-  Edit3,
-  QrCode,
   CheckCircle2,
+  QrCode,
+  MessageSquarePlus,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import {
@@ -103,7 +100,7 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
         origin: { y: 0.6 },
         colors: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1'],
       });
-      // Pre-select first template to clipboard automatically for convenience
+      // Pre-select first template to clipboard automatically for convenience, NO auto-redirect
       const commentToUse = activeComment || reviewTemplates[0] || '';
       if (commentToUse && navigator?.clipboard?.writeText) {
         navigator.clipboard.writeText(commentToUse).catch(() => {});
@@ -374,3 +371,4 @@ export const SimpleReviewScreen: React.FC<SimpleReviewScreenProps> = ({
     </div>
   );
 };
+
