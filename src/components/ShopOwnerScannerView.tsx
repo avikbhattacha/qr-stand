@@ -13,7 +13,6 @@ import {
   Eye,
   Link as LinkIcon,
   Sparkles,
-  Tag,
   PenTool,
   FileText,
   ExternalLink,
@@ -247,14 +246,11 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
     return () => { cancelled = true; };
   }, [customerScanUrl, isTweakedFromDefaults, businessCategory, businessName, directReviewUrl, whatsappNumber]);
 
-  // Download full standalone stand graphic as PNG using HTML5 Canvas rendering
   const handleDownloadStandPNG = async () => {
     if (!standRef.current) return;
     try {
-      // Dynamically import html2canvas or use standard canvas drawing
-      const node = standRef.current;
       const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(node, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
+      const canvas = await html2canvas(standRef.current, { scale: 3, backgroundColor: '#ffffff', useCORS: true });
       const image = canvas.toDataURL('image/png');
       const a = document.createElement('a');
       a.href = image;
@@ -264,8 +260,6 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
       a.click();
       document.body.removeChild(a);
     } catch (err) {
-      console.error('Failed to render standalone stand image:', err);
-      // Fallback: download raw QR if canvas renderer fails
       const a = document.createElement('a');
       a.href = qrDataUrl;
       a.download = 'review-qr.png';
@@ -448,13 +442,6 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
               </div>
               <button onClick={() => window.open(directReviewUrl, '_blank', 'noopener,noreferrer')} className="px-3 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold rounded-xl flex items-center gap-1.5 shrink-0 transition active:scale-95 shadow-2xs"><ExternalLink className="w-3.5 h-3.5 text-slate-900" /><span>Test Link</span></button>
             </div>
-            <div className="flex items-center justify-between">
-              {isDirectModal ? (
-                <div className="text-[10px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg flex items-center gap-1.5 font-semibold"><Check className="w-3 h-3 text-emerald-600 shrink-0" /><span>Configured to land directly in Google's comment box</span></div>
-              ) : (
-                <div className="text-[10px] text-slate-500 flex items-center gap-1"><span>Customers rating 4-5 will be taken to this link.</span></div>
-              )}
-            </div>
           </div>
 
           <div className="pt-2 border-t border-slate-100">
@@ -525,7 +512,6 @@ export const ShopOwnerScannerView: React.FC<ShopOwnerScannerViewProps> = ({
           </div>
 
           <div className="bg-slate-200/80 p-6 sm:p-10 rounded-2xl flex items-center justify-center overflow-x-auto min-h-[520px]">
-            {/* The Physical Card Stand Ref for HTML5 PNG Download */}
             <div
               ref={standRef}
               className={`w-[340px] sm:w-[380px] bg-white rounded-3xl p-8 text-center shadow-2xl border transition-all ${standTheme === 'gold' ? 'border-amber-400 ring-2 ring-amber-400/20' : standTheme === 'navy' ? 'border-4 border-slate-900' : 'border-2 border-black'}`}
