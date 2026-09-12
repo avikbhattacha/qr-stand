@@ -2,33 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { SimpleReviewScreen } from './components/SimpleReviewScreen';
 import { ShopOwnerScannerView } from './components/ShopOwnerScannerView';
 import { QrCode, Smartphone, Star } from 'lucide-react';
-import {
-  decodeTemplatesFromUrl,
-  getStoredTweakedTemplates,
-} from './data/industryTemplates';
+import { decodeTemplatesFromUrl, getStoredTweakedTemplates } from './data/industryTemplates';
 
 export default function App() {
   const searchParams = new URLSearchParams(window.location.search);
   const initialMode = searchParams.get('mode') === 'review' ? 'review' : 'owner';
-  
-  // Clean initialization: Owners fill in their own details dynamically
-  const initialName = searchParams.get('name') || '';
-  const initialReviewUrl =
-    searchParams.get('url') ||
-    searchParams.get('google') ||
-    '';
-  const initialCategory = searchParams.get('cat') || 'general';
+  const initialName = searchParams.get('name') || 'GREENWAVE REFRIGERATION';
+  const initialReviewUrl = searchParams.get('url') || searchParams.get('google') || 'https://share.google/N87XploYcGSuoH3Mk';
+  const initialCategory = searchParams.get('cat') || 'refrigeration_hvac';
   const initialCustomTpl = searchParams.get('customTpl') || '';
   const initialContact = (searchParams.get('contact') as 'both' | 'whatsapp' | 'email') || 'both';
-  const initialWa = searchParams.get('wa') || '';
-  const initialEmail = searchParams.get('email') || '';
-  
+  const initialWa = searchParams.get('wa') || '+91 98765 43210';
+  const initialEmail = searchParams.get('email') || 'service@greenwaverefrigeration.com';
   const initialUrlTpls = searchParams.get('tpls');
   const decodedTpls = initialUrlTpls ? decodeTemplatesFromUrl(initialUrlTpls) : null;
-  const initialTweakedTpls =
-    decodedTpls && decodedTpls.length > 0
-      ? decodedTpls
-      : getStoredTweakedTemplates(initialCategory) || [];
+  const initialTweakedTpls = decodedTpls && decodedTpls.length > 0 ? decodedTpls : getStoredTweakedTemplates(initialCategory) || [];
 
   const [activeView, setActiveView] = useState<'owner' | 'review'>(initialMode);
   const [businessName, setBusinessName] = useState<string>(initialName);
@@ -45,12 +33,9 @@ export default function App() {
     if (params.get('mode') === 'review') setActiveView('review');
     if (params.get('name')) setBusinessName(params.get('name')!);
     if (params.get('url')) setPublicReviewUrl(params.get('url')!);
-    else if (params.get('google')) setPublicReviewUrl(params.get('google')!);
     if (params.get('cat')) setBusinessCategory(params.get('cat')!);
     if (params.get('customTpl')) setCustomTemplate(params.get('customTpl')!);
-    if (params.get('contact')) {
-      setContactMethod(params.get('contact') as 'both' | 'whatsapp' | 'email');
-    }
+    if (params.get('contact')) setContactMethod(params.get('contact') as 'both' | 'whatsapp' | 'email');
     if (params.get('wa')) setWhatsappNumber(params.get('wa')!);
     if (params.get('email')) setOwnerEmail(params.get('email')!);
     if (params.get('tpls')) {
@@ -69,76 +54,52 @@ export default function App() {
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-base tracking-tight text-white block">
-                  ReviewerPulse
-                </span>
+                <span className="font-bold text-base tracking-tight text-white block">ReviewerPulse</span>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
                   Smart Review QR &amp; Stand
                 </span>
               </div>
             </div>
           </div>
-
           <div className="bg-slate-800 p-1 rounded-xl border border-slate-700 flex items-center gap-1">
             <button
-              type="button"
               onClick={() => setActiveView('owner')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-                activeView === 'owner'
-                  ? 'bg-amber-500 text-slate-950 shadow-sm'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${activeView === 'owner' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white hover:bg-slate-700/60'}`}
             >
               <QrCode className="w-3.5 h-3.5" />
-              <span>QR Stand &amp; Generator</span>
+              <span className="hidden sm:inline">QR Stand &amp; Generator</span>
+              <span className="sm:hidden">QR Stand</span>
             </button>
             <button
-              type="button"
               onClick={() => setActiveView('review')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${
-                activeView === 'review'
-                  ? 'bg-amber-500 text-slate-950 shadow-sm'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
-              }`}
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition ${activeView === 'review' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-300 hover:text-white hover:bg-slate-700/60'}`}
             >
               <Smartphone className="w-3.5 h-3.5" />
-              <span>Customer Scan Test</span>
+              <span className="hidden sm:inline">Customer Scan Test</span>
+              <span className="sm:hidden">Scan Test</span>
             </button>
           </div>
         </div>
       </header>
-
       <main className="flex-1">
         {activeView === 'owner' ? (
           <ShopOwnerScannerView
-            businessName={businessName}
-            setBusinessName={setBusinessName}
-            publicReviewUrl={publicReviewUrl}
-            setPublicReviewUrl={setPublicReviewUrl}
-            businessCategory={businessCategory}
-            setBusinessCategory={setBusinessCategory}
-            customTemplate={customTemplate}
-            setCustomTemplate={setCustomTemplate}
-            tweakedTemplates={tweakedTemplates}
-            setTweakedTemplates={setTweakedTemplates}
-            contactMethod={contactMethod}
-            setContactMethod={setContactMethod}
-            whatsappNumber={whatsappNumber}
-            setWhatsappNumber={setWhatsappNumber}
-            ownerEmail={ownerEmail}
-            setOwnerEmail={setOwnerEmail}
+            businessName={businessName} setBusinessName={setBusinessName}
+            publicReviewUrl={publicReviewUrl} setPublicReviewUrl={setPublicReviewUrl}
+            businessCategory={businessCategory} setBusinessCategory={setBusinessCategory}
+            customTemplate={customTemplate} setCustomTemplate={setCustomTemplate}
+            tweakedTemplates={tweakedTemplates} setTweakedTemplates={setTweakedTemplates}
+            contactMethod={contactMethod} setContactMethod={setContactMethod}
+            whatsappNumber={whatsappNumber} setWhatsappNumber={setWhatsappNumber}
+            ownerEmail={ownerEmail} setOwnerEmail={setOwnerEmail}
             onPreviewCustomerScan={() => setActiveView('review')}
           />
         ) : (
           <SimpleReviewScreen
-            businessName={businessName}
-            publicReviewUrl={publicReviewUrl}
-            whatsappNumber={whatsappNumber}
-            ownerEmail={ownerEmail}
-            contactMethod={contactMethod}
-            businessCategory={businessCategory}
-            customTemplate={customTemplate}
-            tweakedTemplates={tweakedTemplates}
+            businessName={businessName} publicReviewUrl={publicReviewUrl}
+            whatsappNumber={whatsappNumber} ownerEmail={ownerEmail}
+            contactMethod={contactMethod} businessCategory={businessCategory}
+            customTemplate={customTemplate} tweakedTemplates={tweakedTemplates}
             onSwitchToOwnerView={() => setActiveView('owner')}
           />
         )}
